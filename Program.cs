@@ -17,13 +17,14 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configure OpenAI client
-var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") 
-                   ?? builder.Configuration["OpenAI:ApiKey"];
+// Load all configuration values before building the app
+var openAiApiKey = builder.Configuration["OpenAI:ApiKey"];
+var ankiConnectUrl = builder.Configuration["AnkiConnect:Url"] ?? "http://127.0.0.1:8765";
+var deckName = builder.Configuration["Anki:DeckName"] ?? "Default";
 
 if (string.IsNullOrEmpty(openAiApiKey))
 {
-    throw new Exception("OpenAI API Key not found. Please set the OPENAI_API_KEY environment variable.");
+    throw new Exception("OpenAI API Key not found. Please set it in appsettings.json, appsettings.Development.json, or as an environment variable.");
 }
 
 builder.Services.AddSingleton(new OpenAIClient(openAiApiKey));
@@ -34,10 +35,6 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors();
-
-// Configuration values
-var ankiConnectUrl = Environment.GetEnvironmentVariable("ANKI_CONNECT_URL") ?? "http://127.0.0.1:8765";
-var deckName = Environment.GetEnvironmentVariable("DECK_NAME") ?? "Default";
 
 // API endpoints
 app.MapGet("/api/config", () => new 
